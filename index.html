@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo H2A Embed - Versión Corregida</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #0f172a;
+            min-height: 100vh;
+            color: white;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            margin-top: 40px;
+            margin-bottom: 16px;
+            font-size: 1.25rem;
+        }
+
+        p {
+            color: #94a3b8;
+            margin-bottom: 10px;
+        }
+
+        .status {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .status.error {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .status.loading {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        code {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .btn:hover {
+            background: #2563eb;
+        }
+
+        .btn.secondary {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .btn.secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .version-badge {
+            display: inline-block;
+            background: #22c55e;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🚀 H2A Embed Demo <span class="version-badge">v2.0</span></h1>
+        <p>Esta página demuestra la integración correcta del widget (versión corregida).</p>
+        <p>Si ves el botón de chat abajo a la derecha, ¡funciona!</p>
+
+        <div class="status loading" id="status">
+            ⏳ Cargando widget...
+        </div>
+
+        <div class="card">
+            <h2>Configuración Actual</h2>
+            <p><strong>Embed ID:</strong> <code id="show-id">-</code></p>
+            <p><strong>Widget URL:</strong> <code id="show-url">-</code></p>
+            <p><strong>Versión:</strong> <code>2.0 (con guards de idempotencia)</code></p>
+        </div>
+
+        <div class="card">
+            <h2>Controles API</h2>
+            <p>Usa estos botones para probar la API del widget:</p>
+            <button class="btn" onclick="H2AEmbed && H2AEmbed.open()">Abrir Widget</button>
+            <button class="btn" onclick="H2AEmbed && H2AEmbed.close()">Cerrar Widget</button>
+            <button class="btn" onclick="H2AEmbed && H2AEmbed.toggle()">Toggle Widget</button>
+            <button class="btn secondary" onclick="console.log('isOpen:', H2AEmbed && H2AEmbed.isOpen())">Check
+                isOpen()</button>
+            <button class="btn secondary" onclick="H2AEmbed && H2AEmbed.destroy(); location.reload();">Destroy &
+                Reload</button>
+        </div>
+
+        <div class="card">
+            <h2>Logs de Consola</h2>
+            <p>Abre DevTools (F12) → Console para ver logs detallados con prefijo <code>[H2A Embed]</code></p>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- CONFIGURACIÓN DEL WIDGET - VERSIÓN 2.0      -->
+    <!-- ============================================ -->
+
+    <!-- 1. Variables Globales -->
+    <script>
+    // Tu Embed ID (obtenido del dashboard H2A)
+    window.H2A_EMBED_ID = "25daa857-8dc3-42af-adb6-14029b046b6e";
+    
+    // URL del Widget:
+    // - TESTING LOCAL: "http://localhost:5173"
+    // - PRODUCCIÓN: "https://h2aintercom.netlify.app"
+    window.H2A_EMBED_URL = "https://h2aintercom.netlify.app";
+    
+    // Mostrar config en la página
+    document.getElementById('show-id').textContent = window.H2A_EMBED_ID;
+    document.getElementById('show-url').textContent = window.H2A_EMBED_URL;
+    </script>
+
+    <!-- 2. Cargar el Loader (embed.js LOCAL) -->
+    <script src="embed.js" async></script>
+
+    <!-- 3. Verificar carga -->
+    <script>
+        window.addEventListener('load', function () {
+            setTimeout(function () {
+                var status = document.getElementById('status');
+                if (window.H2AEmbed) {
+                    status.innerHTML = '✅ Widget cargado correctamente. Usa <code>H2AEmbed.open()</code> para abrirlo.';
+                    status.className = 'status';
+                } else {
+                    status.innerHTML = '❌ Error: H2AEmbed no está disponible. Verifica que embed.js esté en esta carpeta.';
+                    status.className = 'status error';
+                }
+            }, 2000);
+        });
+    </script>
+
+</body>
+
+</html>
