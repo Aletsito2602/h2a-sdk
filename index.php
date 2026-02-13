@@ -69,20 +69,32 @@
   </footer>
 
   <?php
-  // H2A SDK - Integración PHP
+  // H2A SDK v2 - Integración PHP
   require_once 'includes/h2a-sdk.php';
 
-  $h2a = new H2A_SDK('99a7aa52-a5aa-4f4f-ac61-d737b7990483');
+  // --- MODO TEST: datos simulados para probar sin sesión real ---
+  // Cambiar $test_mode a false para usar $_SESSION en producción
+  $test_mode = true;
 
-  // Opcional: Identificar usuario si está logueado
-  if (isset($_SESSION['user_id'])) {
-    $h2a->identify([
-      'user_id' => $_SESSION['user_id'],
-      'name' => $_SESSION['user_name'] ?? '',
-      'email' => $_SESSION['user_email'] ?? ''
-    ]);
+  if ($test_mode) {
+    $user_data = [
+      'idu_w'      => '1',
+      'email'      => 'canal@h2apublicidad.com',
+      'is_logged'  => 'true',
+      'user_token' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3NzA5NDY4ODcsImlzcyI6IkFQSSBjb211bmljYWNpb24gVHJhaW5NRSIsImV4cCI6MTc3MTgxMDg4NywiZGF0YSI6eyJpZCI6IjEiLCJlbWFpbCI6ImNhbmFsQGgyYXB1YmxpY2lkYWQuY29tIn19.Fli-TEKNNZJlNoZO1zVZlpYC-py1x7210zINZGwaFiU',
+    ];
+  } else {
+    session_start();
+    $user_data = [
+      'idu_w'      => $_SESSION['idu_w'] ?? '',
+      'email'      => $_SESSION['email'] ?? '',
+      'is_logged'  => $_SESSION['is_logged'] ?? '',
+      'user_token' => $_SESSION['user_token'] ?? '',
+    ];
   }
 
+  $h2a = new H2A_SDK('99a7aa52-a5aa-4f4f-ac61-d737b7990483');
+  $h2a->identify($user_data);
   echo $h2a->render();
   ?>
 </body>

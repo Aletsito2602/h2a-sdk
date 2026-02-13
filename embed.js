@@ -77,7 +77,22 @@
   }
 
   // Add ?embedded=true so the widget can reliably detect embed mode
-  const widgetUrl = `${config.baseUrl}/embed/${embedId}?embedded=true`;
+  // Also append H2A_USER_DATA as query params so the widget can read them directly
+  let widgetUrl = `${config.baseUrl}/embed/${embedId}?embedded=true`;
+
+  if (window.H2A_USER_DATA && typeof window.H2A_USER_DATA === 'object') {
+    const userData = window.H2A_USER_DATA;
+    const params = new URLSearchParams();
+    if (userData.idu_w) params.set('idu_w', userData.idu_w);
+    if (userData.email) params.set('email', userData.email);
+    if (userData.is_logged) params.set('is_logged', userData.is_logged);
+    if (userData.user_token) params.set('user_token', userData.user_token);
+    const userParams = params.toString();
+    if (userParams) {
+      widgetUrl += '&' + userParams;
+    }
+    console.log('[H2A Embed] User data añadido a URL del iframe');
+  }
 
   console.log('[H2A Embed] ========================================');
   console.log('[H2A Embed] Inicializando widget...');
@@ -278,6 +293,14 @@
         break;
       case 'h2a:widget:ready':
         console.log('[H2A Embed] Widget listo');
+        // Re-enviar datos de usuario cuando el widget confirma que está listo
+        if (window.H2A_USER_DATA && typeof window.H2A_USER_DATA === 'object') {
+          sendMessageToIframe({
+            type: 'h2a:user:data',
+            userData: window.H2A_USER_DATA,
+          });
+          console.log('[H2A Embed] Datos de usuario re-enviados (widget ready):', window.H2A_USER_DATA);
+        }
         break;
       case 'h2a:widget:resize':
         if (payload.height) {
@@ -316,6 +339,17 @@
           ...config,
         },
       });
+
+      // Enviar datos del usuario si existen (window.H2A_USER_DATA)
+      if (window.H2A_USER_DATA && typeof window.H2A_USER_DATA === 'object') {
+        sendMessageToIframe({
+          type: 'h2a:user:data',
+          userData: window.H2A_USER_DATA,
+        });
+        console.log('[H2A Embed] Datos de usuario enviados al iframe:', window.H2A_USER_DATA);
+      } else {
+        console.log('[H2A Embed] No se encontró window.H2A_USER_DATA');
+      }
     });
 
     iframe.addEventListener('error', (e) => {
@@ -343,6 +377,14 @@
       toggle: toggleWidget,
       isOpen: () => isOpen,
       sendMessage: sendMessageToIframe,
+      identify: (userData) => {
+        window.H2A_USER_DATA = userData;
+        sendMessageToIframe({
+          type: 'h2a:user:data',
+          userData: userData,
+        });
+        console.log('[H2A Embed] Datos de usuario actualizados:', userData);
+      },
       destroy: () => {
         if (iframe) iframe.remove();
         if (launcher) launcher.remove();
